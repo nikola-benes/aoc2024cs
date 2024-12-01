@@ -6,11 +6,10 @@
 }
 
 var lists = (
-	from n_i in (
-		from line in ConsoleLines()
-		select line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-			.Select(Int32.Parse).ToArray()
-	).SelectMany(p => p.Select((n, i) => (n, i)))
+	from n_i in ConsoleLines().SelectMany(
+		line => line.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+			.Select((n, i) => (Int32.Parse(n), i))
+	)
 	group n_i by n_i.Item2 into g
 	orderby g.Key
 	select (
