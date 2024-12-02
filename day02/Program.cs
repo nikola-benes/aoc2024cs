@@ -25,7 +25,7 @@ var reports = (
 Console.WriteLine(reports.Count(Safe));
 Console.WriteLine(reports.Count(SafeWithDampener));
 
-public static class Extensions {
+static class Extensions {
 	public static
 	IEnumerable<T> Without<T>(this IEnumerable<T> e, int index) {
 		int i = 0;
