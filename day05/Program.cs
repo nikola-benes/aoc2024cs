@@ -31,18 +31,16 @@ var rules = ConsoleLines().TakeWhile(line => line != "")
 		switch { var a => (src: a[0], dst: a[1]) })
 	.ToArray();
 
-var updates = ConsoleLines().Select(line => line.Split(','))
+var (good, bad) = ConsoleLines().Select(line => line.Split(','))
 	.ToLookup(pages => {
 		var order = pages.Select((p, i) => (p, i)).ToDictionary();
 		return rules.All(
 			r => !order.ContainsKey(r.src)
 			  || !order.ContainsKey(r.dst)
 			  || order[r.src] < order[r.dst]);
-	});
-
-// updates[true] are correct, updates[false] are incorrect
+	}) switch { var g => (g[true], g[false]) };
 
 var GetMid = (IList<string> p) => int.Parse(p[p.Count / 2]);
 
-Console.WriteLine(updates[true].Select(GetMid).Sum());
-Console.WriteLine(updates[false].Select(p => GetMid(Postorder(rules, p))).Sum());
+Console.WriteLine(good.Select(GetMid).Sum());
+Console.WriteLine(bad.Select(p => GetMid(Postorder(rules, p))).Sum());
