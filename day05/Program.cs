@@ -4,16 +4,15 @@ IEnumerable<string> ConsoleLines() {
 	}
 }
 
-List<string> Postorder((string src, string dst)[] rules, string[] pages) {
+List<string> Postorder(ILookup<string, string> rules, string[] pages) {
 	var postorder = new List<string>();
 	var unseen = pages.ToHashSet();
-	var edges = rules.ToLookup(r => r.src, r => r.dst);
 
 	void Dfs(string page) {
 		if (!unseen.Remove(page)) {
 			return;  // wasn't there
 		}
-		foreach (var target in edges[page]) {
+		foreach (var target in rules[page]) {
 			Dfs(target);
 		}
 		postorder.Add(page);
@@ -43,4 +42,6 @@ var (good, bad) = ConsoleLines().Select(line => line.Split(','))
 var GetMid = (IList<string> p) => int.Parse(p[p.Count / 2]);
 
 Console.WriteLine(good.Select(GetMid).Sum());
-Console.WriteLine(bad.Select(p => GetMid(Postorder(rules, p))).Sum());
+
+var rulesLookup = rules.ToLookup(r => r.src, r => r.dst);
+Console.WriteLine(bad.Select(p => GetMid(Postorder(rulesLookup, p))).Sum());
