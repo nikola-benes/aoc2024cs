@@ -44,5 +44,5 @@ PDSet? MoveGuard(YX pos, YX? block = null) {
 var visited = MoveGuard(start)!.Select(pd => pd.pos).Distinct().ToArray();
 
 Console.WriteLine(visited.Length);
-Console.WriteLine(visited.Where(p => p != start)
+Console.WriteLine(visited.Where(p => p != start).AsParallel()
 	.Count(p => MoveGuard(start, p) is null));
