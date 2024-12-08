@@ -25,8 +25,8 @@ Console.WriteLine(pairs
 	.Where(map.InBounds)
 	.Distinct().Count());
 
-Console.WriteLine(pairs.
-	SelectMany(p =>
+Console.WriteLine(pairs
+	.SelectMany(p =>
 		Enumerable.Range(1, int.MaxValue)
 		.Select(k => LinearCombination(k, p.a, -k + 1, p.b))
 		.TakeWhile(map.InBounds))
