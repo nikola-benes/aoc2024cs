@@ -18,6 +18,13 @@ if [ "$DAY" = "" ]; then
 fi
 
 dotnet new console -o "$DIR"
+dotnet add "$DIR" reference aoc
+
+cat <<END > "$DIR/Program.cs"
+using aoc;
+
+var lines = Aoc.ConsoleLines();
+END
 
 curl "https://adventofcode.com/$Y/day/$DAY/input" \
 	--cookie "session=$C" --user-agent "$A" > "$DIR/input"
