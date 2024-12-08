@@ -14,26 +14,23 @@ var antennas = map.IndexedTiles()
 	.Where(t => t.c != '.')
 	.ToLookup(t => t.c, t => t.pos);
 
-Console.WriteLine((from g in antennas
+var pairs = from g in antennas
 	from a in g
 	from b in g
 	where a != b
-	let an = LinearCombination(2, a, -1, b)
-	where map.InBounds(an)
-	select an
-).Distinct().Count());
+	select (a, b);
 
-Console.WriteLine((from g in antennas
-	from a in g
-	from b in g
-	where a != b
-	from an in (
+Console.WriteLine(pairs
+	.Select(p => LinearCombination(2, p.a, -1, p.b))
+	.Where(map.InBounds)
+	.Distinct().Count());
+
+Console.WriteLine(pairs.
+	SelectMany(p =>
 		Enumerable.Range(1, int.MaxValue)
-		.Select(k => LinearCombination(k, a, -k + 1, b))
-		.TakeWhile(p => map.InBounds(p))
-	)
-	select an
-).Distinct().Count());
+		.Select(k => LinearCombination(k, p.a, -k + 1, p.b))
+		.TakeWhile(map.InBounds))
+	.Distinct().Count());
 
 static class Extensions {
 	public static
