@@ -1,83 +1,71 @@
-using Block = (int offset, int len);
+using aoc;
+using Block = (int id, int offset, int len);
 
 var pos = 0;
-var blocks = Console.ReadLine()!
+var (files, free) = Console.ReadLine()!
 	.Select((d, i) => {
 		int len = d - '0';
 		int offset = pos;
 		pos += len;
-		return (offset, len);
-	}).ToArray();
+		return (id: i % 2 == 0 ? i / 2 : -1, offset, len);
+	}).ToLookup(b => b.id >= 0)
+		switch { var lk => (lk[true], lk[false]) };
 
-void AddToSum(ref long sum, int pos, int id, int len) {
-	for (int i = pos; i < pos + len; ++i) {
-		sum += id * i;
+long CheckSum(Block b)
+	=> (long)b.id * (b.offset * b.len + b.len * (b.len - 1) / 2);
+
+IEnumerable<Block> Defrag1(IEnumerable<Block> files, IEnumerable<Block> free) {
+	var e = files.Reverse().GetEnumerator();
+	Func<Block?> NextFile = () => e.MoveNext() ? e.Current : null;
+
+	var last = NextFile()!.Value;
+
+	foreach (var block in free) {
+		var (_, offset, len) = block;
+		while (len > 0 && last.offset > offset) {
+			int chunk = Math.Min(len, last.len);
+			yield return (last.id, offset, chunk);
+
+			offset += chunk;
+			len -= chunk;
+			last.len -= chunk;
+			if (last.len == 0)
+				last = NextFile()!.Value;
+		}
+		if (last.offset <= offset) break;
 	}
+
+	yield return last;
+
+	while (NextFile() is {} file)
+		yield return file;
 }
 
-long Solve1(Block[] blocks) {  // non-destructive
-	long sum = 0;
-	int lastFile = blocks.Length - 2 + blocks.Length % 2;
-	int lastSize = blocks[lastFile].len;
-	int pos = 0;
+IEnumerable<Block> Defrag2(IEnumerable<Block> files, IEnumerable<Block> free) {
+	var freeList = new LinkedList<Block>(free);
 
-	for (int i = 0; i < lastFile; ++i) {
-		if (i % 2 == 0) {
-			AddToSum(ref sum, pos, i / 2, blocks[i].len);
-			pos += blocks[i].len;
+	foreach (var file in files.Reverse()) {
+		while (freeList.Last is { Value: var b }
+				&& b.offset > file.offset) {
+			freeList.RemoveLast();
+		}
+		if (freeList.FindIf(b => file.len <= b.len)
+				is not { Value: var block } node) {
+			yield return file;
 			continue;
 		}
 
-		int size = blocks[i].len;
-		for (int j = 0; j < size && i < lastFile; ++j) {
-			sum += lastFile / 2 * pos++;
-			--lastSize;
-			if (lastSize == 0) {
-				lastFile -= 2;
-				lastSize = blocks[lastFile].len;
-			}
+		yield return (file.id, block.offset, file.len);
+
+		block.len -= file.len;
+		block.offset += file.len;
+		if (block.len == 0) {
+			freeList.Remove(node);
+		} else {
+			node.ValueRef = block;
 		}
 	}
-
-	if (lastSize < blocks[lastFile].len)
-		AddToSum(ref sum, pos, lastFile / 2, lastSize);
-
-	return sum;
 }
 
-long Solve2(Block[] blocks) {  // destructive
-	long sum = 0;
-	int lastFile = blocks.Length - 2 + blocks.Length % 2;
-
-	List<(int id, int offset, int size)> newBlocks = new();
-
-	for (; lastFile > 0; lastFile -= 2) {
-		int size = blocks[lastFile].len;
-		int freeBlock = 1;
-
-		while (freeBlock < lastFile && blocks[freeBlock].len < size)
-			freeBlock += 2;
-
-		if (freeBlock >= lastFile)
-			continue;
-
-		newBlocks.Add((lastFile / 2, blocks[freeBlock].offset, size));
-		blocks[lastFile].len = 0;
-		blocks[freeBlock].len -= size;
-		blocks[freeBlock].offset += size;
-	}
-
-	for (int i = 0; i < blocks.Length; i += 2) {
-		AddToSum(ref sum, blocks[i].offset, i / 2, blocks[i].len);
-	}
-
-	foreach (var b in newBlocks) {
-		var (id, offset, len) = b;
-		AddToSum(ref sum, offset, id, len);
-	}
-
-	return sum;
-}
-
-Console.WriteLine(Solve1(blocks));
-Console.WriteLine(Solve2(blocks));
+Console.WriteLine(Defrag1(files, free).Sum(CheckSum));
+Console.WriteLine(Defrag2(files, free).Sum(CheckSum));
