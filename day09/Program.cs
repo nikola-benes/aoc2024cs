@@ -15,10 +15,8 @@ long CheckSum(Block b)
 	=> (long)b.id * (b.offset * b.len + b.len * (b.len - 1) / 2);
 
 IEnumerable<Block> Defrag1(IEnumerable<Block> files, IEnumerable<Block> free) {
-	var e = files.Reverse().GetEnumerator();
-	Func<Block?> NextFile = () => e.MoveNext() ? e.Current : null;
-
-	var last = NextFile()!.Value;
+	var fileStack = new Stack<Block>(files);
+	var last = fileStack.Pop();
 
 	foreach (var block in free) {
 		var (_, offset, len) = block;
@@ -30,14 +28,14 @@ IEnumerable<Block> Defrag1(IEnumerable<Block> files, IEnumerable<Block> free) {
 			len -= chunk;
 			last.len -= chunk;
 			if (last.len == 0)
-				last = NextFile()!.Value;
+				last = fileStack.Pop();
 		}
 		if (last.offset <= offset) break;
 	}
 
 	yield return last;
 
-	while (NextFile() is {} file)
+	foreach (var file in fileStack)
 		yield return file;
 }
 
