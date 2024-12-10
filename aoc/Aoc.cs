@@ -61,4 +61,7 @@ public static class LinkedListExtensions {
 public static class EnumerableExtensions {
 	public static
 	Grid ToGrid(this IEnumerable<string> rows) => new Grid(rows);
+
+	public static
+	Queue<T> ToQueue<T>(this IEnumerable<T> e) => new Queue<T>(e);
 }
