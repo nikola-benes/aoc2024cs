@@ -4,8 +4,8 @@ Vec2[] dirs4 = { (1, 0), (0, 1), (-1, 0), (0, -1) };
 
 var map = Aoc.ConsoleLines().ToGrid();
 
-var (heads, tails) = map.Tiles.ToLookup(t => t.c, t => t.pos)
-			switch { var lk => (lk['0'], lk['9']) };
+var heads = (from t in map.Tiles where t.c == '0' select t.pos).ToArray();
+var tails = new List<Vec2>();
 
 var sources = heads.ToDictionary(p => p, p => (new[] { p }).ToHashSet());
 var paths = heads.ToDictionary(p => p, _ => 1);
@@ -14,6 +14,11 @@ var queue = heads.ToQueue();
 // Compute everything using just one BFS, yay!
 while (queue.TryDequeue(out var pos)) {
 	var h = map[pos];
+	if (h == '9') {
+		tails.Add(pos);
+		continue;
+	}
+
 	var s = sources[pos];
 	var p = paths[pos];
 
@@ -33,7 +38,5 @@ while (queue.TryDequeue(out var pos)) {
 	}
 }
 
-Console.WriteLine(tails.Sum(p
-			=> sources.ContainsKey(p) ? sources[p].Count : 0));
-
+Console.WriteLine(tails.Sum(p => sources[p].Count));
 Console.WriteLine(tails.Sum(p => paths[p]));
