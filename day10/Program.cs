@@ -26,7 +26,7 @@ while (queue.TryDequeue(out var pos)) {
 			paths[npos] += p;
 		} else {
 			// HashSet has no Clone :-/
-			sources[npos] = new HashSet<Vec2>(s);
+			sources[npos] = s.ToHashSet();
 			paths[npos] = p;
 			queue.Enqueue(npos);
 		}
