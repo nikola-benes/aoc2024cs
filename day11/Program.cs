@@ -9,8 +9,8 @@ IEnumerable<long> Blink(long stone) {
 	}
 }
 
-var stones = Console.ReadLine()!.Split().Select(long.Parse).GroupBy(x => x)
-	.Select(g => (val: g.Key, count: (long)g.Count()));
+var stones = Console.ReadLine()!.Split()
+	.Select(s => (val: long.Parse(s), count: 1L));
 
 for (int i = 0; i < 75; ++i) {
 	stones = (
