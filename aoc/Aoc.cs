@@ -28,6 +28,7 @@ public record struct Vec2(int x, int y) {
 
 public struct Grid {
 	string[] grid;
+	public static Vec2[] dirs4 = { (1, 0), (0, 1), (-1, 0), (0, -1) };
 
 	public Grid(IEnumerable<string> rows) { grid = rows.ToArray(); }
 
@@ -45,6 +46,9 @@ public struct Grid {
 	public char this[Vec2 p] => grid[p.y][p.x];
 
 	public char GetOr(Vec2 p, char d) => InBounds(p) ? this[p] : d;
+
+	public IEnumerable<Vec2> Neighbours4(Vec2 p)
+		=> dirs4.Select(d => p + d).Where(InBounds);
 }
 
 public static class LinkedListExtensions {
