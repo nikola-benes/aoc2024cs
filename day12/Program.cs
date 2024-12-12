@@ -1,6 +1,6 @@
 using aoc;
 
-(int, int) RegionPrice(Grid garden, Vec2 start, HashSet<Vec2> visited) {
+Vec2 RegionPrice(Grid garden, Vec2 start, HashSet<Vec2> visited) {
 	if (!visited.Add(start))
 		return (0, 0);
 
@@ -37,8 +37,9 @@ using aoc;
 
 var garden = Aoc.ConsoleLines().ToGrid();
 var visited = new HashSet<Vec2>();
-var prices = garden.Tiles
-	.Select(t => RegionPrice(garden, t.pos, visited)).ToArray();
+var (part1, part2) = garden.Tiles
+	.Select(t => RegionPrice(garden, t.pos, visited))
+	.Aggregate((a, b) => a + b);
 
-Console.WriteLine(prices.Sum(p => p.Item1));
-Console.WriteLine(prices.Sum(p => p.Item2));
+Console.WriteLine(part1);
+Console.WriteLine(part2);
