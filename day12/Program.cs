@@ -1,14 +1,18 @@
 using aoc;
 
-Vec2 RegionPrice(Grid garden, Vec2 start, HashSet<Vec2> visited) {
-	if (!visited.Add(start))
-		return (0, 0);
+var garden = Aoc.ConsoleLines().ToGrid();
+var (part1, part2) = (0, 0);
 
-	int flower = garden[start];
+var visited = new HashSet<Vec2>();
+var queue = new Queue<Vec2>();
+
+foreach (var (flower, start) in garden.Tiles) {
+	if (!visited.Add(start))
+		continue;
+
 	var (area, perimeter, sides) = (0, 0, 0);
 	var fences = new Dictionary<Vec2, List<Vec2>>();
 
-	var queue = new Queue<Vec2>();
 	queue.Enqueue(start);
 
 	while (queue.TryDequeue(out var pos)) {
@@ -32,14 +36,9 @@ Vec2 RegionPrice(Grid garden, Vec2 start, HashSet<Vec2> visited) {
 		}
 	}
 
-	return (area * perimeter, area * sides);
+	part1 += area * perimeter;
+	part2 += area * sides;
 }
-
-var garden = Aoc.ConsoleLines().ToGrid();
-var visited = new HashSet<Vec2>();
-var (part1, part2) = garden.Tiles
-	.Select(t => RegionPrice(garden, t.pos, visited))
-	.Aggregate((a, b) => a + b);
 
 Console.WriteLine(part1);
 Console.WriteLine(part2);
