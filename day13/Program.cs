@@ -30,6 +30,8 @@ record struct Machine(long ax, long ay, long bx, long by, long tx, long ty) {
 
 		long da = tx * by - bx * ty;
 		long db = ax * ty - tx * ay;
-		return da % d == 0 && db % d == 0 ? 3 * da / d + db / d : 0;
+		return Math.DivRem(da, d) is (var a, 0) &&
+		       Math.DivRem(db, d) is (var b, 0) &&
+		       a >= 0 && b >= 0 ? 3 * a + b : 0;
 	}
 };
