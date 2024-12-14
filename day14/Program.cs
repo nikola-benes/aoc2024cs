@@ -22,11 +22,20 @@ Console.WriteLine(robots
 	.Aggregate((a, b) => a * b)
 );
 
-// run mirror 75
-// notice the horizontal band starting at line 26
-// run line 26 30
-// look for the tree
-var solution = 7892;
+double Variance(IEnumerable<int> data)
+	=> data.Average(x => x * x) - Math.Pow(data.Average(), 2);
+
+var vx = Enumerable.Range(0, w).MinBy(
+	k => Variance(robots.Select(pv => Mod(pv.pos.x + pv.vel.x * k, w)))
+);
+var vy = Enumerable.Range(0, h).MinBy(
+	k => Variance(robots.Select(pv => Mod(pv.pos.y + pv.vel.y * k, h)))
+);
+
+var solution = Enumerable.Range(0, h)
+	.Select(n => w * n + vx)
+	.First(n => n % h == vy);
+
 Console.WriteLine(solution);
 
 if (args.Length == 0)
