@@ -49,31 +49,32 @@ foreach (var t in map.Tiles.Where(t => t.c == 'O')) {
 	AddBox((x * 2, y), (x * 2 + 1, y));
 }
 
-bool CanMoveTo(Vec2 src, Vec2 dir, HashSet<Box> toMove) {
+bool CanMoveTo(Vec2 src, Vec2 dir, Dictionary<Box, bool> canMove) {
 	var pos = src + dir;
 
 	if (map[(pos.x / 2, pos.y)] == '#')
 		return false;
 
-	if (!bigBoxes.TryGetValue(pos, out var box) || toMove.Contains(box))
+	if (!bigBoxes.TryGetValue(pos, out var box))
 		return true;
+
+	if (canMove.TryGetValue(box, out var can))
+		return can;
 
 	Vec2[] next = dir.y == 0
 		? new[] { dir.x == 1 ? box.right : box.left }
 		: new[] { box.left, box.right };
 
-	if (!next.All(p => CanMoveTo(p, dir, toMove)))
-		return false;
-
-	toMove.Add(box);
-	return true;
+	return canMove[box] = next.All(p => CanMoveTo(p, dir, canMove));
 }
 
 foreach (var m in moves) {
 	var dir = dirs[m];
-	HashSet<Box> toMove = new();
-	if (!CanMoveTo(robot, dir, toMove))
+	Dictionary<Box, bool> canMove = new();
+	if (!CanMoveTo(robot, dir, canMove))
 		continue;
+
+	var toMove = canMove.Keys;
 
 	foreach (var box in toMove) {
 		bigBoxes.Remove(box.left);
