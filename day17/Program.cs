@@ -8,6 +8,27 @@ var reg = Aoc.ConsoleLines().TakeWhile(line => line != "")
 var prog = numRe.Matches(Console.ReadLine()!)
 	.Select(m => int.Parse(m.Value)).ToArray();
 
+var ComboDesc = (int n) => n < 4 ? (char)('0' + n) : "ABC"[n - 4];
+
+Func<int, string>[] desc = [
+	n => "A = A / (1 << " + ComboDesc(n) + ")",
+	n => "B = B ^ " + n,
+	n => "B = " + ComboDesc(n) + " % 8",
+	n => "if (A == 0) jmp " + n,
+	_ => "B = B ^ C",
+	n => "out(" + ComboDesc(n) + " % 8)",
+	n => "B = A / (1 << " + ComboDesc(n) + ")",
+	n => "C = A / (1 << " + ComboDesc(n) + ")",
+];
+
+if (args.Length > 0 && args[0] == "decompile") {
+	for (long i = 0; i < prog.Length; i += 2) {
+		var (cmd, n) = (prog[i], prog[i + 1]);
+		Console.WriteLine(desc[cmd](n));
+	}
+	return;
+}
+
 const int A = 0;
 const int B = 1;
 const int C = 2;
