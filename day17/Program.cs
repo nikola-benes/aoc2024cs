@@ -62,3 +62,38 @@ while (ip < prog.Length) {
 }
 
 Console.WriteLine(string.Join(',', output));
+
+bool Bit(long value, int i) => (value & (1 << i)) != 0;
+
+bool Fix(bool?[] bits, int index, long value) {
+	for (int i = 0; i < 3; ++i) {
+		var fix = Bit(value, i);
+		var bit = index + i < bits.Length ? bits[index + i] : false;
+		if (bit is {} b && b != fix)
+			return false;
+		if (bit is null)
+			bits[index + i] = fix;
+	}
+	return true;
+}
+
+long? Solve(int index = 0, bool?[]? bits = null) {
+	bits ??= new bool?[prog.Length * 3];
+
+	if (index == prog.Length * 3) {
+		return bits.Select((b, i) => b!.Value ? 1L << i : 0L).Sum();
+	}
+
+	for (int b = 0; b < 8; ++b) {
+		var newBits = bits.Clone_();
+		// magic numbers from decompiled program
+		var farIndex = index + (b ^ 5);
+		var farValue = b ^ 3 ^ prog[index / 3];
+		if (Fix(newBits, index, b) && Fix(newBits, farIndex, farValue)
+				&& Solve(index + 3, newBits) is {} r)
+			return r;
+	}
+	return null;
+}
+
+Console.WriteLine(Solve());

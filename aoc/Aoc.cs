@@ -7,6 +7,10 @@ public static class Aoc {
 			yield return line;
 		}
 	}
+
+	// to avoid writing the type when cloning
+	public static
+	T Clone_<T>(this T obj) where T : ICloneable => (T)obj.Clone();
 }
 
 public record struct Vec2(int x, int y) {
