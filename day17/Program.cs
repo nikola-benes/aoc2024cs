@@ -11,14 +11,14 @@ var prog = numRe.Matches(Console.ReadLine()!)
 var ComboDesc = (int n) => n < 4 ? (char)('0' + n) : "ABC"[n - 4];
 
 Func<int, string>[] desc = [
-	n => "A = A / (1 << " + ComboDesc(n) + ")",
+	n => "A = A >> " + ComboDesc(n),
 	n => "B = B ^ " + n,
 	n => "B = " + ComboDesc(n) + " % 8",
 	n => "if (A == 0) jmp " + n,
 	_ => "B = B ^ C",
 	n => "out(" + ComboDesc(n) + " % 8)",
-	n => "B = A / (1 << " + ComboDesc(n) + ")",
-	n => "C = A / (1 << " + ComboDesc(n) + ")",
+	n => "B = A >> " + ComboDesc(n),
+	n => "C = A >> " + ComboDesc(n),
 ];
 
 if (args.Length > 0 && args[0] == "decompile") {
@@ -38,7 +38,7 @@ List<int> output = new();
 
 Action<int>[] instr = [
 	// adv
-	n => reg[A] = reg[A] / (1 << Combo(n)),
+	n => reg[A] = reg[A] >> Combo(n),
 	// bxl
 	n => reg[B] = reg[B] ^ n,
 	// bst
@@ -50,14 +50,13 @@ Action<int>[] instr = [
 	// out
 	n => output.Add(Combo(n) % 8),
 	// bdv
-	n => reg[B] = reg[A] / (1 << Combo(n)),
+	n => reg[B] = reg[A] >> Combo(n),
 	// cdv
-	n => reg[C] = reg[A] / (1 << Combo(n)),
+	n => reg[C] = reg[A] >> Combo(n),
 ];
 
 while (ip < prog.Length) {
-	var (cmd, n) = (prog[ip], prog[ip + 1]);
-	ip += 2;
+	var (cmd, n) = (prog[ip++], prog[ip++]);
 	instr[cmd](n);
 }
 
