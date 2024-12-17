@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 Regex numRe = new(@"\d+");
 
 var reg = Aoc.ConsoleLines().TakeWhile(line => line != "")
-	.Select(line => int.Parse(numRe.Match(line).Value)).ToArray();
+	.Select(line => long.Parse(numRe.Match(line).Value)).ToArray();
 var prog = numRe.Matches(Console.ReadLine()!)
 	.Select(m => int.Parse(m.Value)).ToArray();
 
@@ -22,7 +22,7 @@ Func<int, string>[] desc = [
 ];
 
 if (args.Length > 0 && args[0] == "decompile") {
-	for (long i = 0; i < prog.Length; i += 2) {
+	for (int i = 0; i < prog.Length; i += 2) {
 		var (cmd, n) = (prog[i], prog[i + 1]);
 		Console.WriteLine(desc[cmd](n));
 	}
@@ -38,7 +38,7 @@ List<int> output = new();
 
 Action<int>[] instr = [
 	// adv
-	n => reg[A] = reg[A] >> Combo(n),
+	n => reg[A] = reg[A] >> (int)Combo(n),
 	// bxl
 	n => reg[B] = reg[B] ^ n,
 	// bst
@@ -48,11 +48,11 @@ Action<int>[] instr = [
 	// bxc
 	_ => reg[B] = reg[B] ^ reg[C],
 	// out
-	n => output.Add(Combo(n) % 8),
+	n => output.Add((int)(Combo(n) % 8)),
 	// bdv
-	n => reg[B] = reg[A] >> Combo(n),
+	n => reg[B] = reg[A] >> (int)Combo(n),
 	// cdv
-	n => reg[C] = reg[A] >> Combo(n),
+	n => reg[C] = reg[A] >> (int)Combo(n),
 ];
 
 while (ip < prog.Length) {
@@ -62,34 +62,27 @@ while (ip < prog.Length) {
 
 Console.WriteLine(string.Join(',', output));
 
-bool Bit(long value, int i) => (value & (1 << i)) != 0;
-
-bool Fix(bool?[] bits, int index, long value) {
-	for (int i = 0; i < 3; ++i) {
-		var fix = Bit(value, i);
-		var bit = index + i < bits.Length ? bits[index + i] : false;
-		if (bit is {} b && b != fix)
-			return false;
-		if (bit is null)
-			bits[index + i] = fix;
+int FirstOutput(long start) {
+	reg[A] = start;
+	ip = 0;
+	while (true) {
+		// need to use ! to silence the null reference warnings
+		// the compiler emits here for some reason
+		var (cmd, n) = (prog![ip++], prog![ip++]);
+		if (cmd == 5)
+			return (int)(Combo!(n) % 8);
+		instr[cmd](n);
 	}
-	return true;
 }
 
-long? Solve(int index = 0, bool?[]? bits = null) {
-	bits ??= new bool?[prog.Length * 3];
+long? Solve(int? ix = null, long start = 0) {
+	var index = ix ?? prog.Length;
+	if (index-- == 0)
+		return start;
 
-	if (index == prog.Length * 3) {
-		return bits.Select((b, i) => b!.Value ? 1L << i : 0L).Sum();
-	}
-
-	for (int b = 0; b < 8; ++b) {
-		var newBits = bits.Clone_();
-		// magic numbers from decompiled program
-		var farIndex = index + (b ^ 5);
-		var farValue = b ^ 3 ^ prog[index / 3];
-		if (Fix(newBits, index, b) && Fix(newBits, farIndex, farValue)
-				&& Solve(index + 3, newBits) is {} r)
+	for (int d = 0; d < 8; ++d) {
+		var a = start * 8 + d;
+		if (FirstOutput(a) == prog[index] && Solve(index, a) is {} r)
 			return r;
 	}
 	return null;
