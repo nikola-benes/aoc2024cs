@@ -11,6 +11,17 @@ public static class Aoc {
 	// to avoid writing the type when cloning
 	public static
 	T Clone_<T>(this T obj) where T : ICloneable => (T)obj.Clone();
+
+	public static
+	Func<T, TResult> MemoizeRec<T, TResult>(
+		Func<T, Func<T, TResult>, TResult> f
+	) where T : notnull {
+		Dictionary<T, TResult> cache = new();
+		Func<T, TResult>? rec = null;
+		return rec = x =>
+			cache.TryGetValue(x, out var r) ? r :
+			cache[x] = f(x, rec!);
+	}
 }
 
 public record struct Vec2(int x, int y) {
