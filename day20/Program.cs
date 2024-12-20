@@ -3,17 +3,11 @@ using aoc;
 var map = Aoc.ConsoleLines().ToGrid();
 var (_, start) = map.Tiles.First(t => t.c == 'S');
 
-Dictionary<Vec2, int> dist = new();
-Queue<Vec2> queue = new();
-dist[start] = 0;
-queue.Enqueue(start);
+Dictionary<Vec2, int> dist = new() { [start] = 0 };
 
-while (queue.TryDequeue(out var pos)) {
-	var d = dist[pos];
-	foreach (var npos in map.Neighbours4(pos)) {
-		if (map[npos] != '#' && dist.TryAdd(npos, d + 1))
-			queue.Enqueue(npos);
-	}
+for (var (pos, d) = (start, 1); map[pos] != 'E'; ++d) {
+	pos = map.Neighbours4(pos)
+		.First(npos => map[npos] != '#' && dist.TryAdd(npos, d));
 }
 
 IEnumerable<Vec2> EmptyInDist(Vec2 start, int dist) =>
