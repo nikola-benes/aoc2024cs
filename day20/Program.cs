@@ -2,7 +2,6 @@ using aoc;
 
 var map = Aoc.ConsoleLines().ToGrid();
 var (_, start) = map.Tiles.First(t => t.c == 'S');
-var (_, end) = map.Tiles.First(t => t.c == 'E');
 
 Dictionary<Vec2, int> dist = new();
 Queue<Vec2> queue = new();
@@ -17,31 +16,23 @@ while (queue.TryDequeue(out var pos)) {
 	}
 }
 
-// Assumes that each wall is used in at most one (small) cheat.
-// (Works for both the example and my input.)
-var saves =
-	from t in map.Tiles
-	where t.c == '#'
-	let ds = (
-		from p in map.Neighbours4(t.pos)
-		where map[p] != '#'
-		select dist[p]
-	).ToArray()
-	where ds.Any()
-	select ds.Max() - ds.Min() - 2;
-
-Console.WriteLine(saves.Count(s => s >= 100));
+IEnumerable<Vec2> EmptyInDist(Vec2 start, int dist) =>
+	from dx in Enumerable.Range(-dist, 2 * dist + 1)
+	let distY = dist - Math.Abs(dx)
+	from dy in Enumerable.Range(-distY, 2 * distY + 1)
+	let pos = new Vec2(start.x + dx, start.y + dy)
+	where pos != start && map.GetOr(pos, '#') != '#'
+	select pos;
 
 int MDist(Vec2 a, Vec2 b) => Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
 
-saves =
-	from t1 in map.Tiles
-	where t1.c != '#'
-	from t2 in map.Tiles
-	where t2.c != '#' && t1.pos != t2.pos
-	let d = MDist(t1.pos, t2.pos)
-	where d <= 20
-	select dist[t2.pos] - dist[t1.pos] - d;
-;
+int Solve(int maxDist) => (
+	from t in map.Tiles
+	where t.c != '#'
+	let start = t.pos
+	from end in EmptyInDist(start, maxDist)
+	select dist[end] - dist[start] - MDist(start, end)
+).Count(s => s >= 100);
 
-Console.WriteLine(saves.Count(s => s >= 100));
+Console.WriteLine(Solve(2));
+Console.WriteLine(Solve(20));
