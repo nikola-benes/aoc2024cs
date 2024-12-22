@@ -83,4 +83,12 @@ public static class EnumerableExtensions {
 
 	public static
 	Queue<T> ToQueue<T>(this IEnumerable<T> e) => new Queue<T>(e);
+
+	public static
+	IEnumerable<T> Iterate<T>(this T start, Func<T, T> next) {
+		while (true) {
+			yield return start;
+			start = next(start);
+		}
+	}
 }
