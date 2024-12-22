@@ -32,25 +32,15 @@ long MoveFromTo(Grid pad, char from, char to, int layers) {
 	var src = Find(pad, from);
 	var dst = Find(pad, to);
 	var (dx, dy) = dst - src;
-	List<string> moves = new();
-	if (dx < 0) {
-		moves.Add(new string('<', -dx));
-	} else if (dx > 0) {
-		moves.Add(new string('>', dx));
-	}
-	if (dy < 0) {
-		moves.Add(new string('^', -dy));
-	} else if (dy > 0) {
-		moves.Add(new string('v', dy));
-	}
+	string mx = dx < 0 ? new('<', -dx) : dx > 0 ? new('>', dx) : "";
+	string my = dy < 0 ? new('^', -dy) : dy > 0 ? new('v', dy) : "";
+	List<string> moves = new() { mx + my };
+	if (my + mx != mx + my)
+		moves.Add(my + mx);
 
-	return cache[key] =
-		(moves.Count == 0 ? new[] { "" } : moves.Count == 1 ?
-			moves.ToArray() :
-			new[] { moves[0] + moves[1], moves[1] + moves[0] })
+	return cache[key] = moves
 		.Where(o => Possible(pad, src, o))
-		.Select(o => Move(arrows, o, layers - 1))
-		.Min();
+		.Min(o => Move(arrows, o, layers - 1));
 }
 
 long Move(Grid pad, string moves, int layers)
