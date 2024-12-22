@@ -1,6 +1,6 @@
 using aoc;
 
-var dirs = new Dictionary<char, Vec2>{
+Dictionary<char, Vec2> dirs = new() {
 	['^'] = ( 0, -1),
 	['v'] = ( 0,  1),
 	['<'] = (-1,  0),
@@ -9,55 +9,56 @@ var dirs = new Dictionary<char, Vec2>{
 
 var keypad = (new[] { "789", "456", "123", ".0A" }).ToGrid();
 var arrows = (new[] { ".^A", "<v>" }).ToGrid();
-Vec2 kStart = (2, 3);
-Vec2 aStart = (2, 0);
 
-State? nextState(State state, char press, string pass, int which = 0) {
-	var pos =
-		which == 0 ? state.r1Pos :
-		which == 1 ? state.r2Pos :
-		             state.r3Pos;
+Vec2 Find(Grid pad, char button)
+	=> pad.Tiles.First(t => t.c == button).pos;
 
-	bool last = which == 2;
-	var pad = last ? keypad : arrows;
-	if (press != 'A') {
-		pos += dirs![press];
-		return pad.GetOr(pos, '.') == '.' ? null :
-			which == 0 ? state with { r1Pos = pos } :
-			which == 1 ? state with { r2Pos = pos } :
-			             state with { r3Pos = pos };
+bool Possible(Grid pad, Vec2 pos, string moves) {
+	foreach (char m in moves) {
+		pos += dirs[m];
+		if (pad.GetOr(pos, '.') == '.')
+			return false;
 	}
-
-	if (last) {
-		return pass[state.pIndex] == keypad[pos]
-			? state with { pIndex = state.pIndex + 1 }
-			: null;
-	}
-
-	return nextState(state, arrows[pos], pass, which + 1);
-};
-
-int? Solve(string pass) {
-	State start = new ( aStart, aStart, kStart, 0);
-	Dictionary<State, int> dist = new() { [start] = 0 };
-	Queue<State> queue = new();
-	queue.Enqueue(start);
-
-	while (queue.TryDequeue(out var state)) {
-		var d = dist[state] + 1;
-		foreach (var press in "<v>^A") {
-			if (nextState(state, press, pass) is {} next
-					&& dist.TryAdd(next, d)) {
-				if (next.pIndex == pass.Length)
-					return d;
-
-				queue.Enqueue(next);
-			}
-		}
-	}
-	return null;
+	return true;
 }
 
-Console.WriteLine(Aoc.ConsoleLines().Sum(p => int.Parse(p[.. ^1]) * Solve(p)));
+Dictionary<(char, char, int), long> cache = new();
 
-record struct State (Vec2 r1Pos, Vec2 r2Pos, Vec2 r3Pos, int pIndex) {};
+long MoveFromTo(Grid pad, char from, char to, int layers) {
+	var key = (from, to, layers);
+	if (cache.TryGetValue(key, out var r))
+		return r;
+
+	var src = Find(pad, from);
+	var dst = Find(pad, to);
+	var (dx, dy) = dst - src;
+	List<string> moves = new();
+	if (dx < 0) {
+		moves.Add(new string('<', -dx));
+	} else if (dx > 0) {
+		moves.Add(new string('>', dx));
+	}
+	if (dy < 0) {
+		moves.Add(new string('^', -dy));
+	} else if (dy > 0) {
+		moves.Add(new string('v', dy));
+	}
+
+	return cache[key] =
+		(moves.Count == 0 ? new[] { "" } : moves.Count == 1 ?
+			moves.ToArray() :
+			new[] { moves[0] + moves[1], moves[1] + moves[0] })
+		.Where(o => Possible(pad, src, o))
+		.Select(o => Move(arrows, o, layers - 1))
+		.Min();
+}
+
+long Move(Grid pad, string moves, int layers)
+	=> layers == 0 ? moves.Length + 1
+	 : ("A" + moves).Zip(moves + "A")
+		.Sum(p => MoveFromTo(pad, p.First, p.Second, layers));
+
+var ps = Aoc.ConsoleLines().Select(p => p[.. ^1]).ToArray();
+
+Console.WriteLine(ps.Sum(p => int.Parse(p) * Move(keypad, p, 3)));
+Console.WriteLine(ps.Sum(p => int.Parse(p) * Move(keypad, p, 26)));
