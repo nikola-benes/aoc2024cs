@@ -33,10 +33,8 @@ SalesDict Sales(long init) {
 
 SalesDict total = new();
 
-foreach (var s in secrets) {
-	foreach (var (key, sale) in Sales(s)) {
-		total[key] = total.GetValueOrDefault(key) + sale;
-	}
+foreach (var (key, sale) in secrets.SelectMany(Sales)) {
+	total[key] = total.GetValueOrDefault(key) + sale;
 }
 
 Console.WriteLine(total.Values.Max());
