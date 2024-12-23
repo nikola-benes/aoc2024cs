@@ -25,7 +25,7 @@ var vertices = graph.Select(s => s.Key).ToArray();
 List<string>? clique = null;
 
 int MaxClique(List<string> current, int index, int best) {
-	if (current.Count + vertices.Length - index < best)
+	if (current.Count + vertices.Length - index <= best)
 		return best;
 
 	if (index == vertices.Length) {
