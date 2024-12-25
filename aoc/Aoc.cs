@@ -91,4 +91,22 @@ public static class EnumerableExtensions {
 			start = next(start);
 		}
 	}
+
+	public static
+	IEnumerable<IEnumerable<T>>
+	SplitBy<T>(this IEnumerable<T> e, Func<T, bool> pred) {
+		var it = e.GetEnumerator();
+		while (it.MoveNext()) {
+			yield return SplitByAux(it, pred);
+		}
+	}
+
+	private static
+	IEnumerable<T> SplitByAux<T>(IEnumerator<T> it, Func<T, bool> pred) {
+		while (!pred(it.Current)) {
+			yield return it.Current;
+			if (!it.MoveNext())
+				break;
+		}
+	}
 }
